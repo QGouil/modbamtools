@@ -254,6 +254,7 @@ def plot(
                 end = int(line[2])
                 if cluster:
                     dicts, titles = cluster2dicts(bams, chrom, start, end)
+
                 if not cluster:
                     dicts, titles = get_reads(
                         bams,
@@ -319,6 +320,20 @@ def plot(
             track_titles = [t for t in track_titles.strip().split(",")]
         if cluster:
             dicts, titles = cluster2dicts(bams, chrom, start, end)
+            #write file with region and read names for each cluster, if ncluster=2
+            with open("read_cluster_info.txt", "w") as file:
+                # Write header row
+                file.write("chr\tstart\tend\tcluster_id\tread_names\tavg_meth\n")
+                for cluster in range(len(titles)):
+                    # Calculate average methylation over cluster
+                    avg_meth = {}  # initialise list with readnames, avg read methylation
+                    for rname, arr in dicts[cluster].items():
+                        #subset data falling in the region of interest. TO DO
+                        avg_meth[rname] = sum(arr[2].values())/len(arr[2].values())
+                    print(avg_meth)
+                    avg_meth_cluster=sum(avg_meth.values())/len(avg_meth.values())
+                    # Write the read names and average methylation of the cluster
+                    file.write(f"{chrom}\t{start}\t{end}\t{titles[cluster]}\t{dicts[cluster].keys()}\t{avg_meth_cluster}\n")
         if not cluster:
             dicts, titles = get_reads(
                 bams,
